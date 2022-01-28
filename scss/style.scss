@@ -1,0 +1,13 @@
+@import "_nullstyle";
+
+.wrapper {
+    background: #272b30;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    color: #c8c8c8;
+}
+
+#bird, #road{
+    display: none;
+}
