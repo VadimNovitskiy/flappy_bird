@@ -1,3 +1,9 @@
+const canvas = new fabric.Canvas('canvas', {
+    width: innerWidth,
+    height: innerHeight,
+    backgroundColor: '#2d2d29',
+});
+
 
 let img = document.getElementById('bird');
 let img2 = document.getElementById('road');
@@ -7,13 +13,8 @@ let roadImg;
 let id;
 const gravity = 0.5;
 let angle = 0;
-const roads = [];
-
-const canvas = new fabric.Canvas('canvas', {
-    width: 480,
-    height: 640,
-    backgroundColor: '#2d2d29',
-});
+let speedY = 0.5;
+let playArea = canvas.height - 180;
 
 canvas.hasBorders = false;
 canvas.hasControls = false;
@@ -26,7 +27,7 @@ class Bird {
     constructor() {
         this.position = {
             x: 100,
-            y: 0,
+            y: playArea / 2,
         }
         this.velocity = {
             x: 0,
@@ -34,6 +35,7 @@ class Bird {
         }
         this.width = 55
         this.height = 38
+        this.dirty = false
     }
 
     draw() {
@@ -55,14 +57,29 @@ class Bird {
     update() {
         this.draw();
         
+        if(this.dirty) {
+            this.gravitation();
+        } else {
+            this.willy();
+        }
+    }
+
+    gravitation() {
         this.position.y += this.velocity.y;
 
-        if(this.position.y + this.height + this.velocity.y <= road.position.y - 10) {
+        if(this.position.y + this.height + this.velocity.y <= playArea) {
             this.velocity.y += gravity;
             this.down();
         } else {
             this.velocity.y = 0;
-            // cancelAnimationFrame(id);
+        }
+    }
+
+    willy() {
+        this.position.y -= speedY;
+
+        if(this.position.y > playArea / 2 + 7 || this.position.y < playArea / 2 - 7) {
+            speedY = speedY * (-1);
         }
     }
 
@@ -93,8 +110,14 @@ class Road {
             x,
             y,
         }
-        this.width = 508;
+        this.velocity = {
+            x: 3,
+            y: 0,
+        }
+        this.width = 2029;
         this.height = 164.7;
+
+        this.move = false;
     }
 
     draw() {
@@ -112,49 +135,23 @@ class Road {
         canvas.add(roadImg);
     }
 
-    update() {
-        this.draw();
-        this.position.x -= 1;
-
-        // if(this.position.x === canvas.width - this.width) {
-        //     console.log('move');
-        // }
-
-        // if(this.position.x === -this.width) {
-        //     console.log('clear');
-        // }
-    }
-
     clear() {
         canvas.remove(roadImg);
     }
 }
 
 let bird = new Bird();
-let road = new Road(0, 530);
-let road2;
-road.draw();
 
 function animate() {
     requestAnimationFrame(animate);
-    // bird.clear();
-    // bird.update();
-
-    road.clear();
-    road.update();
-    if(road.position.x === canvas.width - road.width) {
-        road2 = new Road(canvas.width, 530);
-        road2.update();
-    }
-
-    if(road.position.x === -road.width) {
-        road.clear();
-    }
+    bird.clear();
+    bird.update();
 }
 animate();
 
 
 addEventListener('keypress', () => {
+    bird.dirty = true;
     bird.up();
     if(bird.position.y <= 0) {
         bird.velocity.y = 0;
@@ -163,12 +160,18 @@ addEventListener('keypress', () => {
     }
 })
 
+let road = new Road(0, canvas.height - 164.7);
 
+function animateRoad() {
+    road.position.x -= road.velocity.x;
 
+    if(road.position.x < canvas.width - road.width) {
+        road.position.x = 0;
+    }
 
+    road.clear();
+    road.draw();
 
-
-
-
-
-
+    requestAnimationFrame(animateRoad);
+}
+requestAnimationFrame(animateRoad);
