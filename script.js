@@ -1,12 +1,13 @@
-const canvas = new fabric.Canvas('canvas', {
-    width: innerWidth,
-    height: innerHeight,
-    backgroundColor: '#2d2d29',
-});
-
 
 let img = document.getElementById('bird');
 let img2 = document.getElementById('road');
+
+
+const canvas = new fabric.Canvas('canvas', {
+    width: innerWidth,
+    height: innerHeight,
+    backgroundImage: './img/Group 4.png',
+});
 
 let birdImg;
 let roadImg;
