@@ -14,11 +14,6 @@ const canvas = new fabric.Canvas('canvas', {
     height: innerHeight,
 });
 
-// canvas.setBackgroundImage('./img/Group 4.png', canvas.renderAll.bind(canvas), {
-//     originX: 'left',
-//     originY: 'top'
-// });
-
 let bird;
 let gravity = 0.5;
 let angle = 0;
@@ -256,23 +251,23 @@ class Wall {
     }
 
     collision() {
-        // let XColl = false;
-        // let YColl = false;
+        let XColl = false;
+        let YColl = false;
 
-        // if(bird.position.x + bird.width/2 >= this.position.x && bird.position.x - bird.width/2 <= this.position.x + this.width) {
-        //     XColl = true;
-        // }
-        // if(bird.position.y + bird.height/2 >= this.position.y && bird.position.y - bird.height/2 <= this.position.y + this.height) {
-        //     YColl = true;
-        // }
-        // if(bird.position.y + bird.height/2 >= this.position.y + this.height + 250 && bird.position.y - bird.height/2 <= this.position.y + this.height * 2 + 250) {
-        //     YColl = true;
-        // }
+        if(bird.position.x + bird.width/2 >= this.position.x && bird.position.x - bird.width/2 <= this.position.x + this.width) {
+            XColl = true;
+        }
+        if(bird.position.y + bird.height/2 >= this.position.y && bird.position.y - bird.height/2 <= this.position.y + this.height) {
+            YColl = true;
+        }
+        if(bird.position.y + bird.height/2 >= this.position.y + this.height + 250 && bird.position.y - bird.height/2 <= this.position.y + this.height * 2 + 250) {
+            YColl = true;
+        }
 
-        // if(XColl && YColl) {
-        //     return true;
-        // }
-        // return false;
+        if(XColl && YColl) {
+            return true;
+        }
+        return false;
     }
 
     clear() {
