@@ -25,6 +25,10 @@ let speedY = 0.5;
 let playAreaY = canvas.height - 165;
 const roadArr = [];
 const wallArr = [];
+const counterArr = [];
+const currentNum = [];
+let counter = 0;
+let counterImg;
 let id;
 let id2;
 let id3;
@@ -41,6 +45,7 @@ canvas.hoverCursor = 'pointer';
 class Bird {
     #birdImg
     constructor() {
+        this.fall_timer = null,
         this.position = {
             x: 100,
             y: playAreaY / 2,
@@ -52,6 +57,8 @@ class Bird {
         this.width = 54;
         this.height = 37;
         this.dirty = false;
+        this.fly_state = 'center'; // up, center, down, fall
+        this.bird_angle = 0;
     }
 
     draw() {
@@ -60,9 +67,11 @@ class Bird {
             top: this.position.y,
             width: this.width,
             height: this.height,
-            angle: angle,
+            angle: this.bird_angle,
             hoverCursor: "default",
             objectCaching: false,
+            originX: 'center',
+            originY: 'center'
         })
         this.#birdImg.lockMovementX = true;
         this.#birdImg.lockMovementY = true;
@@ -80,14 +89,35 @@ class Bird {
         } else {
             this.willy();
         }
+        angle = 0;
+        switch(this.fly_state) {
+            case 'up':
+                this.bird_angle = -25;
+                break;
+            case 'fall':
+                if(this.bird_angle < 90) {
+                    this.bird_angle += 5;
+                }
+                break;
+        }
+    }
+
+    fly() {
+        this.dirty = true;
+        this.up();
+        if(this.position.y + this.height <= 0) {
+            this.velocity.y = 0;
+        } else {
+            this.velocity.y = -10;
+            return;
+        }
     }
 
     gravitation() {
         this.position.y += this.velocity.y;
 
-        if(this.position.y + this.height + this.velocity.y <= playAreaY) {
+        if(this.position.y + this.height / 2 + this.velocity.y <= playAreaY) {
             this.velocity.y += gravity;
-            this.down();
         } else {
             this.velocity.y = 0;
             cancelAnimationFrame(id);
@@ -105,21 +135,19 @@ class Bird {
         }
     }
 
-    down() {
-        angle += 2;
+    up() {
+        this.fly_state = 'up';
 
-        if(angle <= 90) {
-            this.#birdImg.set('angle', angle);
-        } else {
-            angle = 90;
-            this.#birdImg.set('angle', angle);
-            return;
+        if(this.fall_timer) {
+            clearTimeout(this.fall_timer)
+            this.fall_timer = null;
         }
+        this.fall_timer = setTimeout(this.fall.bind(this), 500);
     }
 
-    up() {
-        angle = -45;
-        this.#birdImg.set('angle', angle);
+    fall() {
+        this.fly_state = 'fall';
+        this.fall_timer = null;
     }
 
     clear() {
@@ -246,19 +274,39 @@ class Wall {
         if(this.position.x < canvas.width - 400 && this.position.x > canvas.width - 404) {
             createWall();
         }
+
+        if(this.position.x + this.width - 2 < bird.position.x && this.position.x + this.width + 2 > bird.position.x) {
+
+            if(counterImg) {
+                counterImg.clear();
+            }
+
+            currentNum.length = 0;
+            counter++;
+            let num = ('' + counter).split('').map((el) => currentNum.push(+el));
+            console.log(currentNum);
+
+            counterImg = new Number(currentNum);
+            counterImg.draw();
+
+            // for(let i = 0; i < currentNum; i++) {
+            //     counterImg = new Number(counterArr[currentNum[i]]);
+            //     counterImg.draw();
+            // }
+        }
     }
 
     collision() {
         let XColl = false;
         let YColl = false;
 
-        if(bird.position.x + bird.width >= this.position.x && bird.position.x <= this.position.x + this.width) {
+        if(bird.position.x + bird.width/2 >= this.position.x && bird.position.x - bird.width/2 <= this.position.x + this.width) {
             XColl = true;
         }
-        if(bird.position.y + bird.height >= this.position.y && bird.position.y <= this.position.y + this.height) {
+        if(bird.position.y + bird.height/2 >= this.position.y && bird.position.y - bird.height/2 <= this.position.y + this.height) {
             YColl = true;
         }
-        if(bird.position.y + bird.height >= this.position.y + this.height + 250 && bird.position.y <= this.position.y + this.height * 2 + 250) {
+        if(bird.position.y + bird.height/2 >= this.position.y + this.height + 250 && bird.position.y - bird.height/2 <= this.position.y + this.height * 2 + 250) {
             YColl = true;
         }
 
@@ -274,37 +322,45 @@ class Wall {
     }
 }
 
-class Namber {
+class Number {
     #num;
-    constructor(num) {
+    constructor(...numbers) {
         this.position = {
             x: canvas.width / 2,
             y: 150,
         }
-        this.num = num;
+        this.numbers = numbers;
     }
 
     draw() {
-        this.#num = new fabric.Image()
+        for(let i = 0; i < this.numbers.length; i++) {
+            this.#num = new fabric.Image(counterArr[this.numbers[i]], {
+                left: this.position.x,
+                top: this.position.y,
+                hoverCursor: "default",
+                objectCaching: false,
+            })
+    
+            this.#num.lockMovementX = true;
+            this.#num.lockMovementY = true;
+            this.#num.hasControls = false;
+            this.#num.hasBorders = false;
+            canvas.add(this.#num);
+        }
+    }
+
+    clear() {
+        canvas.remove(this.#num)
     }
 }
 
-function animateBird() {
-    bird.update();
-    id = requestAnimationFrame(animateBird);
-}
-
-function fly() {
-    bird.dirty = true;
-    bird.up();
-    if(bird.position.y + bird.height <= 0) {
-        bird.velocity.y = 0;
-    } else {
-        bird.velocity.y -= 13;
-        return;
+function addNum() {
+    for(let i = 0; i < 10; i++) {
+        let num = document.getElementById(`i${i}`);
+        counterArr.push(num);
     }
 }
-
+addNum();
 
 function randomHeight(min, max) {
     let random = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -340,6 +396,11 @@ function animateRoad() {
     })
 }
 
+function animateBird() {
+    bird.update();
+    id = requestAnimationFrame(animateBird);
+}
+
 function State() {
     switch(state) {
         case 'start':
@@ -356,18 +417,19 @@ function State() {
             animateWall();
             state = 'play';
         case 'play':
-            fly();
+            bird.fly();
             break;
         case 'replay':
             state = 'delete all';
             cancelAnimationFrame(id);
+            counter = 0;
             bird.velocity.y = 0;
             bird = null;
-            angle = 0;
             canvas.remove(...canvas.getObjects());
 
             roadArr.length = 0;
             wallArr.length = 0;
+            currentNum.length = 0;
             gravity = 0.5;
             state = 'start';
             State();
