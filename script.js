@@ -4,6 +4,7 @@ let img = document.getElementById('bird');
 let img2 = document.getElementById('road');
 let downW = document.getElementById('wallDown');
 let topW = document.getElementById('wallTop');
+let back = document.getElementById('back');
 
 addEventListener('keypress', State);
 addEventListener('click', State);
@@ -13,10 +14,10 @@ const canvas = new fabric.Canvas('canvas', {
     height: innerHeight,
 });
 
-canvas.setBackgroundImage('./img/Group 4.png', canvas.renderAll.bind(canvas), {
-    originX: 'left',
-    originY: 'top'
-});
+// canvas.setBackgroundImage('./img/Group 4.png', canvas.renderAll.bind(canvas), {
+//     originX: 'left',
+//     originY: 'top'
+// });
 
 let bird;
 let gravity = 0.5;
@@ -27,11 +28,13 @@ const roadArr = [];
 const wallArr = [];
 const counterArr = [];
 const currentNum = [];
+const backgroundArr = [];
 let counter = 0;
 let counterImg;
 let id;
 let id2;
 let id3;
+let id4;
 let state = 'start';
 
 canvas.selection = false;
@@ -123,6 +126,7 @@ class Bird {
             cancelAnimationFrame(id);
             cancelAnimationFrame(id2);
             cancelAnimationFrame(id3);
+            cancelAnimationFrame(id4);
             state = 'replay';
         }
     }
@@ -152,6 +156,128 @@ class Bird {
 
     clear() {
         canvas.remove(this.#birdImg);
+    }
+}
+
+class Wall {
+    #wallDown
+    #wallTop
+    constructor(x, y) {
+        this.position = {
+            x,
+            y,
+        }
+        this.velocity = {
+            x: 3,
+            y: 0,
+        }
+        this.width = 122;
+        this.height = 440;
+    }
+
+    draw() {
+        this.#wallDown = new fabric.Image(downW, {
+            left: this.position.x,
+            top: this.position.y + this.height + 250,
+            width: this.width,
+            height: this.height,
+            hoverCursor: "default",
+            objectCaching: false,
+        })
+
+        this.#wallDown.lockMovementX = true;
+        this.#wallDown.lockMovementY = true;
+        this.#wallDown.hasControls = false;
+        this.#wallDown.hasBorders = false;
+        canvas.add(this.#wallDown);
+        canvas.sendToBack(this.#wallDown);
+        
+
+        this.#wallTop = new fabric.Image(topW, {
+            left: this.position.x,
+            top: this.position.y,
+            width: this.width,
+            height: this.height,
+            hoverCursor: "default",
+            objectCaching: false,
+        })
+
+        this.#wallTop.lockMovementX = true;
+        this.#wallTop.lockMovementY = true;
+        this.#wallTop.hasControls = false;
+        this.#wallTop.hasBorders = false;
+        canvas.add(this.#wallTop);
+        canvas.sendToBack(this.#wallTop);
+    }
+
+    update() {
+        if(this.collision()) {
+            gravity = 5;
+            cancelAnimationFrame(id2);
+            cancelAnimationFrame(id3);
+            cancelAnimationFrame(id4);
+            wallArr.length = 0;
+            state = 'replay';
+            return;
+        }
+
+        this.position.x -= this.velocity.x;
+        this.clear();
+        this.draw();
+
+        if(this.position.x < -this.width && this.position.x2 < -this.width) {
+            this.clear();
+            wallArr.splice(0, 1);
+        }
+
+        if(this.position.x < canvas.width - 400 && this.position.x > canvas.width - 404) {
+            createWall();
+        }
+
+        if(this.position.x + this.width - 2 < bird.position.x && this.position.x + this.width + 2 > bird.position.x) {
+
+            if(counterImg) {
+                counterImg.clear();
+            }
+
+            currentNum.length = 0;
+            counter++;
+            let num = ('' + counter).split('').map((el) => currentNum.push(+el));
+            console.log(currentNum);
+
+            counterImg = new Number(currentNum);
+            counterImg.draw();
+
+            // for(let i = 0; i < currentNum; i++) {
+            //     counterImg = new Number(counterArr[currentNum[i]]);
+            //     counterImg.draw();
+            // }
+        }
+    }
+
+    collision() {
+        // let XColl = false;
+        // let YColl = false;
+
+        // if(bird.position.x + bird.width/2 >= this.position.x && bird.position.x - bird.width/2 <= this.position.x + this.width) {
+        //     XColl = true;
+        // }
+        // if(bird.position.y + bird.height/2 >= this.position.y && bird.position.y - bird.height/2 <= this.position.y + this.height) {
+        //     YColl = true;
+        // }
+        // if(bird.position.y + bird.height/2 >= this.position.y + this.height + 250 && bird.position.y - bird.height/2 <= this.position.y + this.height * 2 + 250) {
+        //     YColl = true;
+        // }
+
+        // if(XColl && YColl) {
+        //     return true;
+        // }
+        // return false;
+    }
+
+    clear() {
+        canvas.remove(this.#wallDown);
+        canvas.remove(this.#wallTop);
     }
 }
 
@@ -202,40 +328,23 @@ class Road {
     }
 }
 
-class Wall {
-    #wallDown
-    #wallTop
-    constructor(x, y) {
+class Background {
+    #back_img;
+    constructor(x) {
         this.position = {
             x,
-            y,
-        }
-        this.velocity = {
-            x: 3,
             y: 0,
         }
-        this.width = 122;
-        this.height = 440;
+        this.velocity = {
+            x: 1,
+            y: 0,
+        }
+        this.width = 541;
+        this.height = 980;
     }
 
     draw() {
-        this.#wallDown = new fabric.Image(downW, {
-            left: this.position.x,
-            top: this.position.y + this.height + 250,
-            width: this.width,
-            height: this.height,
-            hoverCursor: "default",
-            objectCaching: false,
-        })
-
-        this.#wallDown.lockMovementX = true;
-        this.#wallDown.lockMovementY = true;
-        this.#wallDown.hasControls = false;
-        this.#wallDown.hasBorders = false;
-        canvas.add(this.#wallDown);
-        canvas.sendToBack(this.#wallDown);
-
-        this.#wallTop = new fabric.Image(topW, {
+        this.#back_img = new fabric.Image(back, {
             left: this.position.x,
             top: this.position.y,
             width: this.width,
@@ -244,81 +353,25 @@ class Wall {
             objectCaching: false,
         })
 
-        this.#wallTop.lockMovementX = true;
-        this.#wallTop.lockMovementY = true;
-        this.#wallTop.hasControls = false;
-        this.#wallTop.hasBorders = false;
-        canvas.add(this.#wallTop);
-        canvas.sendToBack(this.#wallTop);
+        this.#back_img.lockMovementX = true;
+        this.#back_img.lockMovementY = true;
+        this.#back_img.hasControls = false;
+        this.#back_img.hasBorders = false;
+        canvas.add(this.#back_img);
+        canvas.sendToBack(this.#back_img);
     }
 
     update() {
-        if(this.collision()) {
-            gravity = 5;
-            cancelAnimationFrame(id2);
-            cancelAnimationFrame(id3);
-            wallArr.length = 0;
-            state = 'replay';
-            return;
-        }
-
         this.position.x -= this.velocity.x;
         this.clear();
         this.draw();
-
-        if(this.position.x < -this.width && this.position.x2 < -this.width) {
-            this.clear();
-            wallArr.splice(0, 1);
+        if(this.position.x < -this.width) {
+            this.position.x = canvas.width;
         }
-
-        if(this.position.x < canvas.width - 400 && this.position.x > canvas.width - 404) {
-            createWall();
-        }
-
-        if(this.position.x + this.width - 2 < bird.position.x && this.position.x + this.width + 2 > bird.position.x) {
-
-            if(counterImg) {
-                counterImg.clear();
-            }
-
-            currentNum.length = 0;
-            counter++;
-            let num = ('' + counter).split('').map((el) => currentNum.push(+el));
-            console.log(currentNum);
-
-            counterImg = new Number(currentNum);
-            counterImg.draw();
-
-            // for(let i = 0; i < currentNum; i++) {
-            //     counterImg = new Number(counterArr[currentNum[i]]);
-            //     counterImg.draw();
-            // }
-        }
-    }
-
-    collision() {
-        let XColl = false;
-        let YColl = false;
-
-        if(bird.position.x + bird.width/2 >= this.position.x && bird.position.x - bird.width/2 <= this.position.x + this.width) {
-            XColl = true;
-        }
-        if(bird.position.y + bird.height/2 >= this.position.y && bird.position.y - bird.height/2 <= this.position.y + this.height) {
-            YColl = true;
-        }
-        if(bird.position.y + bird.height/2 >= this.position.y + this.height + 250 && bird.position.y - bird.height/2 <= this.position.y + this.height * 2 + 250) {
-            YColl = true;
-        }
-
-        if(XColl && YColl) {
-            return true;
-        }
-        return false;
     }
 
     clear() {
-        canvas.remove(this.#wallDown);
-        canvas.remove(this.#wallTop);
+        canvas.remove(this.#back_img);
     }
 }
 
@@ -362,6 +415,11 @@ function addNum() {
 }
 addNum();
 
+function animateBird() {
+    bird.update();
+    id = requestAnimationFrame(animateBird);
+}
+
 function randomHeight(min, max) {
     let random = Math.floor(Math.random() * (max - min + 1)) + min;
     return random;
@@ -396,25 +454,42 @@ function animateRoad() {
     })
 }
 
-function animateBird() {
-    bird.update();
-    id = requestAnimationFrame(animateBird);
+function createBack() {
+    let length = 5;
+    for(let i = 0; i < length; i++) {
+        let back = new Background(i * 541);
+        backgroundArr.push(back);
+    }
+}
+
+function animateBack() {
+    id4 = requestAnimationFrame(animateBack);
+
+    backgroundArr.forEach((el) => {
+        el.update();
+    })
 }
 
 function State() {
     switch(state) {
         case 'start':
             state = 'init';
+            createBack();
+            animateBack();
+
             bird = new Bird();
             animateBird();
+
             createRoad();
             animateRoad();
             state = 'createWall';
             break;
         case 'createWall':
             state = 'animateWall';
+            
             createWall();
             animateWall();
+            
             state = 'play';
         case 'play':
             bird.fly();
@@ -429,6 +504,7 @@ function State() {
 
             roadArr.length = 0;
             wallArr.length = 0;
+            backgroundArr.length = 0;
             currentNum.length = 0;
             gravity = 0.5;
             state = 'start';

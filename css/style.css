@@ -82,6 +82,10 @@ h1, h2, h3, h4, h5, h6 {
   color: #c8c8c8;
 }
 
-#bird, #road, #wallDown, #wallTop, #i0, #i1, #i2, #i3, #i4, #i5, #i6, #i7, #i8, #i9 {
+#bird, #road, #wallDown, #wallTop, #back {
+  display: none;
+}
+
+#i0, #i1, #i2, #i3, #i4, #i5, #i6, #i7, #i8, #i9 {
   display: none;
 }
